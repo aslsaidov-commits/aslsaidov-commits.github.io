@@ -3,144 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Моя личная страница</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    
+    <title>Диагностика склонности к насильственному экстремизму</title>
     <style>
-        /* Базовые настройки страницы */
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa;
-            color: #333;
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* Главный контейнер, который держит весь контент по центру */
-        .container {
-            max-width: 800px;
-            width: 90%;
-            margin: 50px auto;
-            background: #ffffff;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-
-        /* Шапка профиля */
-        .header {
-            text-align: center;
-            border-bottom: 2px solid #e9ecef;
-            padding-bottom: 30px;
-            margin-bottom: 30px;
-        }
-
-        .profile-pic {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid #4a90e2;
-            margin-bottom: 15px;
-        }
-
-        h1 {
-            margin: 0;
-            font-size: 2.5em;
-            color: #2c3e50;
-        }
-
-        .subtitle {
-            font-size: 1.2em;
-            color: #7f8c8d;
-            font-weight: 300;
-            margin-top: 5px;
-        }
-
-        /* Секция "О себе" */
-        .about-section h2 {
-            color: #2c3e50;
-            font-size: 1.8em;
-            margin-bottom: 15px;
-        }
-
-        .about-section p {
-            font-size: 1.1em;
-            color: #555;
-            margin-bottom: 15px;
-            text-align: justify;
-        }
-
-        /* Кнопки контактов */
-        .contact-links {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-top: 30px;
-        }
-
-        .btn {
-            text-decoration: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .btn-email { background-color: #e74c3c; }
-        .btn-github { background-color: #333; }
-        .btn-telegram { background-color: #0088cc; }
-
-        .btn:hover {
-            opacity: 0.8;
-            transform: translateY(-2px);
-        }
-
-        /* Подвал */
-        footer {
-            margin-top: 30px;
-            text-align: center;
-            color: #95a5a6;
-            font-size: 0.9em;
-        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; color: #333; line-height: 1.6; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1, h2 { text-align: center; color: #2c3e50; }
+        .instructions { background: #e9ecef; padding: 15px; border-radius: 5px; margin-bottom: 20px; font-size: 0.95em; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        input[type="text"], input[type="number"], select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .question { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+        .question p { font-weight: bold; margin-bottom: 10px; }
+        .options { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+        .options label { font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 5px; background: #f8f9fa; padding: 8px 12px; border-radius: 4px; border: 1px solid #ddd; transition: 0.2s; }
+        .options label:hover { background: #e2e6ea; }
+        button { background-color: #007bff; color: white; border: none; padding: 12px 20px; cursor: pointer; border-radius: 4px; font-size: 16px; width: 100%; margin-top: 20px; transition: 0.3s; }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #999; cursor: not-allowed; }
+        .hidden { display: none; }
+        #loading { text-align: center; font-weight: bold; color: #007bff; margin-top: 20px; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        
-        <header class="header">
-            <img src="https://via.placeholder.com/150" alt="Мое фото" class="profile-pic">
-            <h1>[Ваше Имя и Фамилия]</h1>
-            <div class="subtitle">Кандидат психологических наук | Преподаватель</div>
-        </header>
+<div class="container">
+    <h1>Диагностика склонности к насильственному экстремизму</h1>
+    <p style="text-align: center; color: #666;">(Давыдов Д.Г., Хломов К.Д.)</p>
 
-        <section class="about-section">
-            <h2>Обо мне</h2>
-            <p>
-                Привет! Я преподаватель и исследователь. Моя основная деятельность связана с работой в Чеченском государственном педагогическом университете, где я занимаюсь вопросами психологии, педагогики и образовательных методологий.
-            </p>
-            <p>
-                В сферу моих научных и профессиональных интересов входит изучение профилактики социально-психологических угроз, работа со стрессовыми расстройствами. Я активно участвую в молодежных образовательных проектах и форумах.
-            </p>
-        </section>
-
-        <div class="contact-links">
-            <a href="mailto:vash_email@example.com" class="btn btn-email">Написать Email</a>
-            <a href="https://t.me/vash_telegram" class="btn btn-telegram" target="_blank">Telegram</a>
-            <a href="https://github.com/vash_login" class="btn btn-github" target="_blank">GitHub</a>
+    <div id="demographics">
+        <h2>Анкетные данные</h2>
+        <div class="form-group">
+            <label for="gender">Пол:</label>
+            <select id="gender">
+                <option value="">Выберите пол</option>
+                <option value="Мужской">Мужской</option>
+                <option value="Женский">Женский</option>
+            </select>
         </div>
-
-        <footer>
-            <p>© 2026 [Ваше Имя]. Создано с помощью GitHub Pages.</p>
-        </footer>
-
+        <div class="form-group">
+            <label for="age">Возраст (полных лет):</label>
+            <input type="number" id="age" placeholder="Например: 20" min="10" max="100">
+        </div>
+        <div class="form-group">
+            <label for="location">Место жительства (город, регион):</label>
+            <input type="text" id="location" placeholder="Например: г. Грозный">
+        </div>
+        <button onclick="startTest()">Начать тест</button>
     </div>
+
+    <div id="test-section" class="hidden">
+        <div class="instructions">
+            <strong>Инструкция:</strong> Ниже представлены вопросы-утверждения. Оцените каждое из них по 5-балльной шкале, балл «1» означает «категорически не согласен», а балл «5» - «полностью согласен».
+        </div>
+        <div id="questions-container"></div>
+        <button id="submit-btn" onclick="finishTest()">Завершить тест и отправить результаты</button>
+        <div id="loading" class="hidden">Отправка результатов, пожалуйста, подождите...</div>
+    </div>
+
+    <div id="result-section" class="hidden">
+        <h2>Тестирование завершено!</h2>
+        <p>Спасибо за участие. Ваши ответы успешно сохранены.</p>
+    </div>
+</div>
+
+<script>
+    // ВСТАВЬТЕ ВАШУ ССЫЛКУ ИЗ GOOGLE APPS SCRIPT МЕЖДУ КАВЫЧЕК НИЖЕ
+    const scriptURL = 'ВСТАВЬТЕ_СЮДА_ВАШУ_ССЫЛКУ'; 
+
+    const questionsText = [
+        "Все люди делятся на сильных и слабых.", "Добро должно быть с кулаками, уметь защитить себя.", "Исконный образ жизни моего народа можно защитить только силой.", "Люди не будут хорошо трудиться, если их не заставлять.", "При общении с приезжими надо показывать, кто в доме хозяин.", "Почти все разногласия можно решить с помощью переговоров.", "Если меня кто-то оскорбит, я могу действовать очень жестко.", "Часто попадаются люди, которые раздражают меня одним своим присутствием.", "Иногда невозможно удержаться от драки.", "Надписи на стенах - приемлемый способ выразить свое недовольство, если нет других путей.", "Не стоит церемониться с людьми, которые тебе не нравятся.", "Человека можно понять, если его разозлили, а он ударил в ответ или сломал какую-либо вещь.", "К некоторым нациям и народам трудно хорошо относиться.", "Каждый человек либо хороший, либо плохой.", "Мой принцип: «Никогда не доверять «чужакам»».", "Нормально считать, что твой народ лучше, чем все остальные.", "Я могу представить человека другой расы своим близким другом.", "Я хочу, чтобы среди моих друзей были люди разных национальностей.", "Мне всегда важно, чтобы обидчик был наказан, а жертва отомщена.", "Многие социальные проблемы будут решены, если мы избавимся от аморальных и малодушных людей.", "Прежде всего, нашему обществу нужна дисциплина и решительность в борьбе за наши исконные ценности.", "Оскорбление чести и достоинства всегда нужно карать.", "В нашем обществе добиться справедливости важнее, чем проявлять жалость к отдельным людям.", "Некоторые преступления заслуживают более тяжкого наказания, чем тюрьма: иногда преступников следует публично казнить.", "Вполне возможно, что эта серия войн и конфликтов раз и навсегда будет остановлена землетрясением, наводнением или иной катастрофой, которая уничтожит мир.", "В нашем обществе нет смысла быть честным и заботиться о среде обитания - все равно другие продолжают обманывать и все портить.", "Сегодня везде царит неуверенность, мы должны быть готовы к кризисам, жестким конфликтам и переворотам.", "Наше общество стоит на пороге гибели.", "Нет смысла в напряженной учебе или работе — все равно все достается тем, кого устроят родители.", "Я отлично знаю, что в этом обществе от меня ничего не зависит.", "Есть знаки, в которых скрыто особое знание.", "Каждый должен верить в свое предназначение, идти дорогой, которая предначертана судьбой.", "Люди не осознают, что наша жизнь управляется заговорами и тайными организациями.", "Наука не всегда полезна, поскольку существует много такого, что человеческий разум не в силах понять.", "От символов, которые используют люди, часто зависит их судьба.", "Тот, кто понимает тайное значение древних символов, может влиять на других людей.", "Безопаснее всего предполагать, что в каждом человеке есть злые черты, которые вылезут на поверхность при возможности.", "Все продается и все покупается, вопрос только в цене.", "Мне не нравятся большинство окружающих меня людей и вообще мир вокруг.", "Человек человеку волк, и все заботятся лишь о себе.", "Чем больше возможностей, тем вероятнее, что человек ступит на плохой путь.", "Со всеми людьми можно найти общий язык.", "В наше время требуется больше увлеченных романтиков и энтузиастов.", "Люди, у которых нет планов преобразовать наше общество, кажутся мне странными.", "Известности и признания заслуживают только смелые люди, действующие наперекор пассивному большинству.", "Худший недостаток — быть занудным человеком, который всегда действует по инструкции.", "Человека, который много сделал для человечества, можно простить за жесткие поступки и неуживчивый характер.", "Я считаю, что люди должны быть способны отдать жизнь за свои идеи.", "Нам нужны не программы и законы, а несколько храбрых, неутомимых и преданных лидеров, в которых люди могут верить.", "Правы люди, которые всегда следуют пословице: «Если нельзя, но очень хочется, то можно».", "Среди тех, кто сидит в тюрьме, многие — настоящие герои.", "Только слабые и трусливые люди стремятся выполнять все правила и законы.", "Законы у нас принимают для того, чтобы в стране был порядок.", "Работа полицейских всегда заслуживает уважения.", "Бизнесмен или хороший менеджер сейчас важнее для общества, чем художник или профессор.", "Нашему народу нужно меньше рассуждать и больше заниматься конкретными делами.", "Никому не интересны переживания разных интеллигентов.", "Обсуждение разных взглядов только запутывает людей - решение многих социальных проблем лежит на поверхности.", "Слишком часто люди выносят свою личную жизнь наружу.", "Рассказы, повествующие о мыслях и чувствах, читать интереснее, чем те, где описываются поступки или приключения.", "Если точку зрения разделяет большинство моих друзей, значит, она верная.", "Обычно я делаю то, о чем меня просят друзья, даже если это не нравится другим.", "Я всегда поддержу своих друзей, даже если общество против них.", "Я часто развлекаюсь в компании с друзьями, хотя мне не совсем по душе некоторые наши проделки.", "Драться за честь своей команды — почетнее, чем быть успешным индивидуалистом.", "Надо пройти через опасности и испытания, чтобы тебя приняли в команду настоящих друзей."
+    ];
+
+    let demographicsData = {};
+
+    function startTest() {
+        const gender = document.getElementById('gender').value;
+        const age = document.getElementById('age').value;
+        const locationStr = document.getElementById('location').value;
+
+        if (!gender || !age || !locationStr) {
+            alert('Пожалуйста, заполните все анкетные данные.');
+            return;
+        }
+
+        demographicsData = { gender, age, location: locationStr };
+        document.getElementById('demographics').classList.add('hidden');
+        document.getElementById('test-section').classList.remove('hidden');
+        renderQuestions();
+    }
+
+    function renderQuestions() {
+        const container = document.getElementById('questions-container');
+        let html = '';
+        questionsText.forEach((q, index) => {
+            const num = index + 1;
+            html += `<div class="question">
+                <p>${num}. ${q}</p>
+                <div class="options">
+                    <label><input type="radio" name="q${num}" value="1"> 1 (Категорически не согласен)</label>
+                    <label><input type="radio" name="q${num}" value="2"> 2</label>
+                    <label><input type="radio" name="q${num}" value="3"> 3</label>
+                    <label><input type="radio" name="q${num}" value="4"> 4</label>
+                    <label><input type="radio" name="q${num}" value="5"> 5 (Полностью согласен)</label>
+                </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+        window.scrollTo(0, 0);
+    }
+
+    function finishTest() {
+        let answers = [];
+        for (let i = 1; i <= 66; i++) {
+            const selected = document.querySelector(`input[name="q${i}"]:checked`);
+            if (!selected) {
+                alert(`Вы не ответили на вопрос №${i}`);
+                document.querySelector(`input[name="q${i}"]`).closest('.question').scrollIntoView();
+                return;
+            }
+            answers[i] = parseInt(selected.value);
+        }
+
+        // Блокируем кнопку, чтобы не нажали дважды
+        const btn = document.getElementById('submit-btn');
+        btn.disabled = true;
+        document.getElementById('loading').classList.remove('hidden');
+
+        const v = (num) => answers[num];
+        const r = (num) => 6 - answers[num]; // Обратная шкала
+
+        // Подсчет шкал
+        const scales = {
+            s1: v(1)+v(2)+v(3)+v(4)+v(5)+r(6),
+            s2: v(7)+v(8)+v(9)+v(10)+v(11)+v(12),
+            s3: v(13)+v(14)+v(15)+v(16)+r(17)+r(18),
+            s4: v(19)+v(20)+v(21)+v(22)+v(23)+v(24),
+            s5: v(25)+v(26)+v(27)+v(28)+v(29)+v(30),
+            s6: v(31)+v(32)+v(33)+v(34)+v(35)+v(36),
+            s7: v(37)+v(38)+v(39)+v(40)+v(41)+v(42),
+            s8: v(43)+v(44)+v(45)+v(46)+v(47)+v(48),
+            s9: v(49)+v(50)+v(51)+v(52)+r(53)+r(54),
+            s10: v(55)+v(56)+v(57)+v(58)+v(59)+r(60),
+            s11: v(61)+v(62)+v(63)+v(64)+v(65)+v(66)
+        };
+
+        // Подготовка данных для отправки
+        const formData = new URLSearchParams();
+        formData.append('gender', demographicsData.gender);
+        formData.append('age', demographicsData.age);
+        formData.append('location', demographicsData.location);
+        
+        for (let key in scales) {
+            formData.append(key, scales[key]);
+        }
+
+        // Отправка в Google Таблицу
+        fetch(scriptURL, { method: 'POST', body: formData })
+            .then(response => {
+                document.getElementById('test-section').classList.add('hidden');
+                document.getElementById('result-section').classList.remove('hidden');
+                window.scrollTo(0, 0);
+            })
+            .catch(error => {
+                alert('Произошла ошибка при отправке данных. Проверьте подключение к интернету.');
+                btn.disabled = false;
+                document.getElementById('loading').classList.add('hidden');
+            });
+    }
+</script>
 
 </body>
 </html>
