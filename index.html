@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Моя личная страница</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Базовые настройки страницы */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Главный контейнер, который держит весь контент по центру */
+        .container {
+            max-width: 800px;
+            width: 90%;
+            margin: 50px auto;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        /* Шапка профиля */
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 30px;
+            margin-bottom: 30px;
+        }
+
+        .profile-pic {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #4a90e2;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2.5em;
+            color: #2c3e50;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #7f8c8d;
+            font-weight: 300;
+            margin-top: 5px;
+        }
+
+        /* Секция "О себе" */
+        .about-section h2 {
+            color: #2c3e50;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+
+        .about-section p {
+            font-size: 1.1em;
+            color: #555;
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        /* Кнопки контактов */
+        .contact-links {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-email { background-color: #e74c3c; }
+        .btn-github { background-color: #333; }
+        .btn-telegram { background-color: #0088cc; }
+
+        .btn:hover {
+            opacity: 0.8;
+            transform: translateY(-2px);
+        }
+
+        /* Подвал */
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #95a5a6;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <header class="header">
+            <img src="https://via.placeholder.com/150" alt="Мое фото" class="profile-pic">
+            <h1>[Ваше Имя и Фамилия]</h1>
+            <div class="subtitle">Кандидат психологических наук | Преподаватель</div>
+        </header>
+
+        <section class="about-section">
+            <h2>Обо мне</h2>
+            <p>
+                Привет! Я преподаватель и исследователь. Моя основная деятельность связана с работой в Чеченском государственном педагогическом университете, где я занимаюсь вопросами психологии, педагогики и образовательных методологий.
+            </p>
+            <p>
+                В сферу моих научных и профессиональных интересов входит изучение профилактики социально-психологических угроз, работа со стрессовыми расстройствами, а также чеченская филология и литература. Я активно участвую в молодежных образовательных проектах и форумах.
+            </p>
+        </section>
+
+        <div class="contact-links">
+            <a href="mailto:vash_email@example.com" class="btn btn-email">Написать Email</a>
+            <a href="https://t.me/vash_telegram" class="btn btn-telegram" target="_blank">Telegram</a>
+            <a href="https://github.com/vash_login" class="btn btn-github" target="_blank">GitHub</a>
+        </div>
+
+        <footer>
+            <p>© 2026 [Ваше Имя]. Создано с помощью GitHub Pages.</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>
