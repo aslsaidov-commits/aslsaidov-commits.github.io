@@ -60,6 +60,14 @@
             <label for="location">Место жительства (город/село, регион):</label>
             <input type="text" id="location" placeholder="Например: г. Грозный">
         </div>
+        <div class="form-group" style="background: #e3f2fd; padding: 15px; border-radius: 5px; margin-top: 15px;">
+            <label for="contact">Контактные данные (Email или Телефон):</label>
+            <p style="font-size: 0.85em; color: #555; margin-top: 0; margin-bottom: 10px;">
+                Оставьте контакт, чтобы получить результаты диагностики. <br>
+                <strong>Важно:</strong> чтобы мы могли связать ваши ответы с ответами вашего ребенка (или родителя), пожалуйста, <strong>укажите один и тот же контакт</strong> для всей вашей семьи.
+            </p>
+            <input type="text" id="contact" placeholder="Ваш email или номер телефона">
+        </div>
         <button onclick="startTestsQueue()">Начать тестирование</button>
     </div>
 
@@ -69,11 +77,13 @@
         <div id="test-body"></div>
         <button id="next-test-btn" onclick="processCurrentTest()">Далее</button>
         <div id="loading" class="hidden">Сохранение результатов...</div>
+        <button id="retry-btn" class="hidden" onclick="submitAllData()" style="background-color: #dc3545; margin-top: 15px;">Повторить отправку результатов</button>
     </div>
 
-    <div id="step-final" class="hidden">
+   <div id="step-final" class="hidden">
         <h2>Исследование завершено!</h2>
         <p>Огромное спасибо за ваше участие. Ваши ответы успешно сохранены.</p>
+        <button onclick="location.reload()" style="margin-top: 20px; background-color: #28a745;">Пройти тест повторно (для другого члена семьи)</button>
     </div>
 
 </div>
@@ -942,13 +952,15 @@
         const gender = document.getElementById('gender').value;
         const age = document.getElementById('age').value;
         const loc = document.getElementById('location').value;
+        const contact = document.getElementById('contact').value.trim();
 
-        if (!gender || !age || !loc) {
-            alert('Пожалуйста, заполните все поля анкеты.');
+        if (!gender || !age || !loc || !contact) {
+            alert('Пожалуйста, заполните все поля анкеты, включая контактные данные.');
             return;
         }
 
-        state.demographics = { gender: gender, age: age, location: loc };
+        // Сохраняем контакт вместе с остальной анкетой
+        state.demographics = { gender: gender, age: age, location: loc, contact: contact };
         
         state.testsQueue = categoryRouting[state.category] || [];
 
@@ -1009,29 +1021,31 @@
     }
     function submitAllData() {
         const btn = document.getElementById('next-test-btn');
+        const retryBtn = document.getElementById('retry-btn');
+        
         btn.disabled = true;
         document.getElementById('loading').classList.remove('hidden');
+        if (retryBtn) retryBtn.classList.add('hidden'); // Прячем кнопку ошибки перед новой попыткой
 
         const formData = new URLSearchParams();
         formData.append('category', state.category);
         formData.append('gender', state.demographics.gender);
         formData.append('age', state.demographics.age);
         formData.append('location', state.demographics.location);
+        formData.append('contact', state.demographics.contact); // Отправляем контакт в Google Таблицу
         
         for (let key in state.allResults) {
             formData.append(key, state.allResults[key]);
         }
 
-        // Реальная отправка данных в Google Таблицу
         fetch(scriptURL, { method: 'POST', body: formData })
             .then(response => {
                 showFinalScreen();
             })
             .catch(error => {
-                // Если произошла ошибка (например, пропал интернет)
-                alert('Произошла ошибка при отправке данных. Проверьте интернет.');
-                btn.disabled = false;
+                alert('Произошла ошибка при отправке данных. Проверьте интернет и нажмите "Повторить отправку результатов".');
                 document.getElementById('loading').classList.add('hidden');
+                if (retryBtn) retryBtn.classList.remove('hidden'); // Показываем кнопку повтора
             });
     }
     function showFinalScreen() {
