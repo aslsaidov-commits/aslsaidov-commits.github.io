@@ -1,1 +1,561 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мониторинг социокультурной адаптации</title>
+    <style>
+        :root {
+            --primary-color: #0056b3;
+            --primary-hover: #004494;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #cccccc;
+        }
 
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-color); line-height: 1.6; padding: 20px; transition: all 0.3s; }
+        .container { max-width: 800px; margin: 0 auto; background: var(--card-bg); padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        
+        /* RTL Support for Arabic */
+        body.rtl { direction: rtl; text-align: right; }
+        body.rtl .radio-group label { text-align: right; }
+        
+        h1, h2, h3 { text-align: center; color: var(--primary-color); }
+        .instructions { background: #e9ecef; padding: 15px; border-radius: 5px; margin-bottom: 20px; font-size: 0.95em; border-left: 4px solid var(--primary-color); }
+        body.rtl .instructions { border-left: none; border-right: 4px solid var(--primary-color); }
+
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; }
+        
+        /* Обновлено: добавлен селектор для select */
+        input[type="text"], input[type="number"], textarea, select { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; box-sizing: border-box; font-family: inherit; font-size: 16px; background-color: #fff;}
+        
+        .question { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+        .question p { font-weight: bold; margin-bottom: 10px; }
+        
+        .radio-group { display: flex; flex-direction: column; gap: 8px; }
+        .radio-group label { font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 10px; background: #f8f9fa; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); transition: 0.2s; margin-bottom: 0; }
+        .radio-group label:hover { background: #e2e6ea; }
+        .radio-group input[type="radio"], .radio-group input[type="checkbox"] { margin: 0; width: 18px; height: 18px; }
+
+        .lang-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .lang-btn { background: #fff; border: 2px solid var(--primary-color); color: var(--primary-color); font-size: 18px; font-weight: bold; }
+        .lang-btn:hover { background: var(--primary-color); color: #fff; }
+
+        button { background-color: var(--primary-color); color: white; border: none; padding: 12px 20px; cursor: pointer; border-radius: 4px; font-size: 16px; width: 100%; margin-top: 20px; transition: 0.3s; font-weight: bold; }
+        button:hover { background-color: var(--primary-hover); }
+        button:disabled { background-color: #999; cursor: not-allowed; }
+        
+        .hidden { display: none !important; }
+        #loading { text-align: center; font-weight: bold; color: var(--primary-color); margin-top: 20px; }
+        
+        .nav-buttons { display: flex; gap: 10px; }
+        .btn-secondary { background-color: #6c757d; }
+        .btn-secondary:hover { background-color: #5a6268; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- STEP 1: LANGUAGE SELECTION -->
+    <div id="step-lang">
+        <h1 style="color: #333;">Language Selection / Выбор языка</h1>
+        <p style="text-align: center; margin-bottom: 30px;">Please select your preferred language.<br>Пожалуйста, выберите язык заполнения анкеты.</p>
+        <div class="lang-grid">
+            <button class="lang-btn" onclick="selectLanguage('ru')">Русский</button>
+            <button class="lang-btn" onclick="selectLanguage('en')">English</button>
+            <button class="lang-btn" onclick="selectLanguage('fr')">Français</button>
+            <button class="lang-btn" onclick="selectLanguage('ar')">العربية</button>
+        </div>
+    </div>
+
+    <!-- STEP 2: INTRO -->
+    <div id="step-intro" class="hidden">
+        <h1 id="t-main-title"></h1>
+        <div class="instructions" id="t-intro-text"></div>
+        <button onclick="startSurvey()" id="btn-start"></button>
+    </div>
+
+    <!-- STEP 3: SURVEY BLOCKS -->
+    <div id="step-survey" class="hidden">
+        <h2 id="block-title"></h2>
+        <div id="survey-container"></div>
+        
+        <div class="nav-buttons">
+            <button id="btn-prev" class="btn-secondary hidden" onclick="prevBlock()"></button>
+            <button id="btn-next" onclick="nextBlock()"></button>
+        </div>
+        <div id="loading" class="hidden"></div>
+    </div>
+
+    <!-- STEP 4: FINAL -->
+    <div id="step-final" class="hidden">
+        <h1 id="t-final-title"></h1>
+        <p style="text-align: center; font-size: 1.2em;" id="t-final-text"></p>
+    </div>
+</div>
+
+<script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxZyto5N8rIY3BLgdM-NU5nunBIS1Pbk3a8ITEhZgspgBZlMrz0K3HlozAdoy5Z4cFBzQ/exec'; // Вставьте ваш URL
+
+    // --- I18N DICTIONARIES ---
+    const i18n = {
+        ru: {
+            title: "Мониторинг социокультурной адаптации",
+            intro: "Уважаемый респондент! Координационный центр ФГБОУ ВО «ЧГПУ» проводит анонимный социологический опрос, направленный на изучение особенностей социокультурной адаптации иностранных обучающихся. Ваши ответы будут использованы исключительно в обобщённом виде для аналитических целей. Просим Вас отвечать искренне — правильных и неправильных ответов не существует.",
+            btnStart: "Начать опрос",
+            btnPrev: "Назад",
+            btnNext: "Далее",
+            btnSubmit: "Отправить результаты",
+            loading: "Сохранение результатов...",
+            finalTitle: "Исследование завершено!",
+            finalText: "Благодарим Вас за участие в опросе!",
+            otherSpecify: "Другое (укажите):",
+            errorRequired: "Пожалуйста, ответьте на все вопросы на этой странице.",
+            blocks: [
+                "БЛОК I. СОЦИАЛЬНО-ДЕМОГРАФИЧЕСКИЕ ДАННЫЕ",
+                "БЛОК II. СОЦИОКУЛЬТУРНАЯ АДАПТАЦИЯ",
+                "БЛОК III. ПРАВОВАЯ ГРАМОТНОСТЬ",
+                "БЛОК IV. ОТНОШЕНИЕ К ДЕСТРУКТИВНЫМ ИДЕОЛОГИЯМ"
+            ],
+            likertScale: "Оцените степень Вашего согласия с каждым утверждением по шкале от 1 до 5, где: 1 — совершенно не согласен; 5 — полностью согласен."
+        },
+        en: {
+            title: "Sociocultural Adaptation Monitoring",
+            intro: "Dear respondent! The Coordinating Center of CHSPU is conducting an anonymous sociological survey aimed at studying the features of sociocultural adaptation of foreign students. Your answers will be used exclusively in a generalized form for analytical purposes. Please answer sincerely — there are no right or wrong answers.",
+            btnStart: "Start Survey",
+            btnPrev: "Previous",
+            btnNext: "Next",
+            btnSubmit: "Submit Results",
+            loading: "Saving results...",
+            finalTitle: "Survey Completed!",
+            finalText: "Thank you for your participation!",
+            otherSpecify: "Other (specify):",
+            errorRequired: "Please answer all questions on this page.",
+            blocks: [
+                "BLOCK I. SOCIO-DEMOGRAPHIC DATA",
+                "BLOCK II. SOCIOCULTURAL ADAPTATION",
+                "BLOCK III. LEGAL LITERACY",
+                "BLOCK IV. ATTITUDE TOWARDS DESTRUCTIVE IDEOLOGIES"
+            ],
+            likertScale: "Rate your agreement with each statement on a scale of 1 to 5, where 1 - strongly disagree; 5 - strongly agree."
+        },
+        fr: {
+            title: "Suivi de l'adaptation socioculturelle",
+            intro: "Cher répondant ! Le Centre de coordination du CHSPU mène une enquête sociologique anonyme visant à étudier l'adaptation socioculturelle des étudiants étrangers. Vos réponses seront utilisées exclusivement sous forme globale à des fins d'analyse. Merci de répondre sincèrement — il n'y a pas de bonnes ou de mauvaises réponses.",
+            btnStart: "Commencer l'enquête",
+            btnPrev: "Précédent",
+            btnNext: "Suivant",
+            btnSubmit: "Soumettre",
+            loading: "Enregistrement des résultats...",
+            finalTitle: "Enquête terminée !",
+            finalText: "Merci pour votre participation !",
+            otherSpecify: "Autre (précisez) :",
+            errorRequired: "Veuillez répondre à toutes les questions de cette page.",
+            blocks: [
+                "BLOC I. DONNÉES SOCIO-DÉMOGRAPHIQUES",
+                "BLOC II. ADAPTATION SOCIOCULTURELLE",
+                "BLOC III. ALPHABÉTISATION JURIDIQUE",
+                "BLOC IV. ATTITUDE ENVERS LES IDÉOLOGIES DESTRUCTRICES"
+            ],
+            likertScale: "Évaluez votre accord avec chaque affirmation sur une échelle de 1 à 5, où 1 - pas du tout d'accord ; 5 - tout à fait d'accord."
+        },
+        ar: {
+            title: "مراقبة التكيف الاجتماعي والثقافي",
+            intro: "عزيزي المشارك! يجري مركز التنسيق مسحًا اجتماعيًا مجهول الهوية يهدف إلى دراسة ميزات التكيف الاجتماعي والثقافي للطلاب الأجانب. ستُستخدم إجاباتك حصريًا في شكل معمم لأغراض تحليلية. يرجى الإجابة بصدق - لا توجد إجابات صحيحة أو خاطئة.",
+            btnStart: "ابدأ الاستطلاع",
+            btnPrev: "السابق",
+            btnNext: "التالي",
+            btnSubmit: "إرسال النتائج",
+            loading: "جاري حفظ النتائج...",
+            finalTitle: "اكتمل الاستطلاع!",
+            finalText: "شكرا لمشاركتك!",
+            otherSpecify: "أخرى (حدد):",
+            errorRequired: "يرجى الإجابة على جميع الأسئلة في هذه الصفحة.",
+            blocks: [
+                "القسم الأول: البيانات الاجتماعية والديموغرافية",
+                "القسم الثاني: التكيف الاجتماعي والثقافي",
+                "القسم الثالث: الثقافة القانونية",
+                "القسم الرابع: الموقف تجاه الأيديولوجيات المدمرة"
+            ],
+            likertScale: "قيم مدى موافقتك على كل عبارة بمقياس من 1 إلى 5، حيث 1 - لا أوافق بشدة؛ 5 - أوافق بشدة."
+        }
+    };
+
+    // --- QUESTION DATABASE ---
+    const questionsDB = [
+        // БЛОК 1
+        { 
+            id: "q1", 
+            block: 0, 
+            type: "select", 
+            q: { 
+                ru: "1. Укажите Вашу страну гражданства:", 
+                en: "1. Country of citizenship:", 
+                fr: "1. Pays de citoyenneté:", 
+                ar: "1. بلد الجنسية:" 
+            }, 
+            opts: { 
+                ru: [
+                    "Выберите страну...", "Австралия", "Австрия", "Азербайджан", "Албания", "Алжир", "Ангола", "Андорра", "Антигуа и Барбуда", "Аргентина", "Армения", "Афганистан", "Багамские Острова", "Бангладеш", "Барбадос", "Бахрейн", "Беларусь", "Белиз", "Бельгия", "Бенин", "Болгария", "Боливия", "Босния и Герцеговина", "Ботсвана", "Бразилия", "Бруней", "Буркина-Фасо", "Бурунди", "Бутан", "Вануату", "Великобритания", "Венгрия", "Венесуэла", "Восточный Тимор", "Вьетнам", "Габон", "Гаити", "Гайана", "Гамбия", "Гана", "Гватемала", "Гвинея", "Гвинея-Бисау", "Германия", "Гондурас", "Гренада", "Греция", "Грузия", "Дания", "Джибути", "Доминика", "Доминиканская Республика", "Египет", "Замбия", "Зимбабве", "Израиль", "Индия", "Индонезия", "Иордания", "Ирак", "Иран", "Ирландия", "Исландия", "Испания", "Италия", "Йемен", "Кабо-Верде", "Казахстан", "Камбоджа", "Камерун", "Канада", "Катар", "Кения", "Кипр", "Кыргызстан", "Кирибати", "Китай", "Колумбия", "Коморские Острова", "Конго (ДРК)", "Конго (Республика)", "Коста-Рика", "Кот-д'Ивуар", "Куба", "Кувейт", "Лаос", "Латвия", "Лесото", "Либерия", "Ливан", "Ливия", "Литва", "Лихтенштейн", "Люксембург", "Маврикий", "Мавритания", "Мадагаскар", "Малави", "Малайзия", "Мали", "Мальдивы", "Мальта", "Марокко", "Маршалловы Острова", "Мексика", "Микронезия", "Мозамбик", "Молдавия", "Монако", "Монголия", "Мьянма", "Намибия", "Науру", "Непал", "Нигер", "Нигерия", "Нидерланды", "Никарагуа", "Новая Зеландия", "Норвегия", "ОАЭ", "Оман", "Пакистан", "Палау", "Панама", "Папуа — Новая Гвинея", "Парагвай", "Перу", "Польша", "Португалия", "Россия", "Руанда", "Румыния", "Сальвадор", "Самоа", "Сан-Марино", "Сан-Томе и Принсипи", "Саудовская Аравия", "Северная Македония", "Сейшельские Острова", "Сенегал", "Сент-Винсент и Гренадины", "Сент-Китс и Невис", "Сент-Люсия", "Сербия", "Сингапур", "Сирия", "Словакия", "Словения", "США", "Сомали", "Судан", "Суринам", "Сьерра-Леоне", "Таджикистан", "Таиланд", "Танзания", "Того", "Тонга", "Тринидад и Тобаго", "Тувалу", "Тунис", "Туркменистан", "Турция", "Уганда", "Узбекистан", "Украина", "Уругвай", "Фиджи", "Филиппины", "Финляндия", "Франция", "Хорватия", "ЦАР", "Чад", "Черногория", "Чехия", "Чили", "Швейцария", "Швеция", "Шри-Ланка", "Эквадор", "Экваториальная Гвинея", "Эритрея", "Эсватини", "Эстония", "Эфиопия", "ЮАР", "Южная Корея", "Южный Судан", "Ямайка", "Япония", "Другая страна"
+                ],
+                en: [
+                    "Select country...", "Australia", "Austria", "Azerbaijan", "Albania", "Algeria", "Angola", "Andorra", "Antigua and Barbuda", "Argentina", "Armenia", "Afghanistan", "Bahamas", "Bangladesh", "Barbados", "Bahrain", "Belarus", "Belize", "Belgium", "Benin", "Bulgaria", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Burkina Faso", "Burundi", "Bhutan", "Vanuatu", "United Kingdom", "Hungary", "Venezuela", "East Timor", "Vietnam", "Gabon", "Haiti", "Guyana", "Gambia", "Ghana", "Guatemala", "Guinea", "Guinea-Bissau", "Germany", "Honduras", "Grenada", "Greece", "Georgia", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Egypt", "Zambia", "Zimbabwe", "Israel", "India", "Indonesia", "Jordan", "Iraq", "Iran", "Ireland", "Iceland", "Spain", "Italy", "Yemen", "Cape Verde", "Kazakhstan", "Cambodia", "Cameroon", "Canada", "Qatar", "Kenya", "Cyprus", "Kyrgyzstan", "Kiribati", "China", "Colombia", "Comoros", "Congo (DRC)", "Congo (Republic)", "Costa Rica", "Côte d'Ivoire", "Cuba", "Kuwait", "Laos", "Latvia", "Lesotho", "Liberia", "Lebanon", "Libya", "Lithuania", "Liechtenstein", "Luxembourg", "Mauritius", "Mauritania", "Madagascar", "Malawi", "Malaysia", "Mali", "Maldives", "Malta", "Morocco", "Marshall Islands", "Mexico", "Micronesia", "Mozambique", "Moldova", "Monaco", "Mongolia", "Myanmar", "Namibia", "Nauru", "Nepal", "Niger", "Nigeria", "Netherlands", "Nicaragua", "New Zealand", "Norway", "UAE", "Oman", "Pakistan", "Palau", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Poland", "Portugal", "Russia", "Rwanda", "Romania", "El Salvador", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "North Macedonia", "Seychelles", "Senegal", "Saint Vincent and the Grenadines", "Saint Kitts and Nevis", "Saint Lucia", "Serbia", "Singapore", "Syria", "Slovakia", "Slovenia", "USA", "Somalia", "Sudan", "Suriname", "Sierra Leone", "Tajikistan", "Thailand", "Tanzania", "Togo", "Tonga", "Trinidad and Tobago", "Tuvalu", "Tunisia", "Turkmenistan", "Turkey", "Uganda", "Uzbekistan", "Ukraine", "Uruguay", "Fiji", "Philippines", "Finland", "France", "Croatia", "CAR", "Chad", "Montenegro", "Czech Republic", "Chile", "Switzerland", "Sweden", "Sri Lanka", "Ecuador", "Equatorial Guinea", "Eritrea", "Eswatini", "Estonia", "Ethiopia", "South Africa", "South Korea", "South Sudan", "Jamaica", "Japan", "Other country"
+                ],
+                fr: [
+                    "Sélectionnez le pays...", "Australie", "Autriche", "Azerbaïdjan", "Albanie", "Algérie", "Angola", "Andorre", "Antigua-et-Barbuda", "Argentine", "Arménie", "Afghanistan", "Bahamas", "Bangladesh", "Barbade", "Bahreïn", "Biélorussie", "Belize", "Belgique", "Bénin", "Bulgarie", "Bolivie", "Bosnie-Herzégovine", "Botswana", "Brésil", "Brunéi", "Burkina Faso", "Burundi", "Bhoutan", "Vanuatu", "Royaume-Uni", "Hongrie", "Venezuela", "Timor oriental", "Vietnam", "Gabon", "Haïti", "Guyana", "Gambie", "Ghana", "Guatemala", "Guinée", "Guinée-Bissau", "Allemagne", "Honduras", "Grenade", "Grèce", "Géorgie", "Danemark", "Djibouti", "Dominique", "République dominicaine", "Égypte", "Zambie", "Zimbabwe", "Israël", "Inde", "Indonésie", "Jordanie", "Irak", "Iran", "Irlande", "Islande", "Espagne", "Italie", "Yémen", "Cap-Vert", "Kazakhstan", "Cambodge", "Cameroun", "Canada", "Qatar", "Kenya", "Chypre", "Kirghizistan", "Kiribati", "Chine", "Colombie", "Comores", "Congo (RDC)", "Congo (République)", "Costa Rica", "Côte d'Ivoire", "Cuba", "Koweït", "Laos", "Lettonie", "Lesotho", "Libéria", "Liban", "Libye", "Lituanie", "Liechtenstein", "Luxembourg", "Maurice", "Mauritanie", "Madagascar", "Malawi", "Malaisie", "Mali", "Maldives", "Malte", "Maroc", "Îles Marshall", "Mexique", "Micronésie", "Mozambique", "Moldavie", "Monaco", "Mongolie", "Myanmar", "Namibie", "Nauru", "Népal", "Niger", "Nigéria", "Pays-Bas", "Nicaragua", "Nouvelle-Zélande", "Norvège", "Émirats Arabes Unis", "Oman", "Pakistan", "Palaos", "Panama", "Papouasie-Nouvelle-Guinée", "Paraguay", "Pérou", "Pologne", "Portugal", "Russie", "Rwanda", "Roumanie", "El Salvador", "Samoa", "Saint-Marin", "Sao Tomé-et-Principe", "Arabie Saoudite", "Macédoine du Nord", "Seychelles", "Sénégal", "Saint-Vincent-et-les-Grenadines", "Saint-Kitts-et-Nevis", "Sainte-Lucie", "Serbie", "Singapour", "Syrie", "Slovaquie", "Slovénie", "États-Unis", "Somalie", "Soudan", "Suriname", "Sierra Leone", "Tadjikistan", "Thaïlande", "Tanzanie", "Togo", "Tonga", "Trinité-et-Tobago", "Tuvalu", "Tunisie", "Turkménistan", "Turquie", "Ouganda", "Ouzbékistan", "Ukraine", "Uruguay", "Fidji", "Philippines", "Finlande", "France", "Croatie", "RCA", "Tchad", "Monténégro", "République tchèque", "Chili", "Suisse", "Suède", "Sri Lanka", "Équateur", "Guinée équatoriale", "Érythrée", "Eswatini", "Estonie", "Éthiopie", "Afrique du Sud", "Corée du Sud", "Soudan du Sud", "Jamaïque", "Japon", "Autre pays"
+                ],
+                ar: [
+                    "اختر البلد...", "أستراليا", "النمسا", "أذربيجان", "ألبانيا", "الجزائر", "أنغولا", "أندورا", "أنتيغوا وبربودا", "الأرجنتين", "أرمينيا", "أفغانستان", "جزر البهاما", "بنغلاديش", "باربادوس", "البحرين", "بيلاروسيا", "بليز", "بلجيكا", "بنين", "بلغاريا", "بوليفيا", "البوسنة والهرسك", "بوتسوانا", "البرازيل", "بروناي", "بوركينا فاسو", "بوروندي", "بوتان", "فانواتو", "المملكة المتحدة", "المجر", "فنزويلا", "تيمور الشرقية", "فيتنام", "الغابون", "هايتي", "غويانا", "غامبيا", "غانا", "غواتيمالا", "غينيا", "غينيا بيساو", "ألمانيا", "هندوراس", "غرينادا", "اليونان", "جورجيا", "الدنمارك", "جيبوتي", "دومينيكا", "جمهورية الدومينيكان", "مصر", "زامبيا", "زيمبابوي", "إسرائيل", "الهند", "إندونيسيا", "الأردن", "العراق", "إيران", "أيرلندا", "أيسلندا", "إسبانيا", "إيطاليا", "اليمن", "الرأس الأخضر", "كازاخستان", "كمبوديا", "الكاميرون", "كندا", "قطر", "كينيا", "قبرص", "قيرغيزستان", "كيريباتي", "الصين", "كولومبيا", "جزر القمر", "الكونغو (الديمقراطية)", "الكونغو (الجمهورية)", "كوستاريكا", "كوت ديفوار", "كوبا", "الكويت", "لاوس", "لاتفيا", "ليسوتو", "ليبيريا", "لبنان", "ليبيا", "ليتوانيا", "ليختنشتاين", "لوكسمبورغ", "موريشيوس", "موريتانيا", "مدغشقر", "مالاوي", "ماليزيا", "مالي", "جزر المالديف", "مالطا", "المغرب", "جزر مارشال", "المكسيك", "ميكرونيزيا", "موزمبيق", "مولدوفا", "موناكو", "منغوليا", "ميانمار", "ناميبيا", "ناورو", "نيبال", "النيجر", "نيجيريا", "هولندا", "نيكاراغوا", "نيوزيلندا", "النرويج", "الإمارات العربية المتحدة", "عمان", "باكستان", "بالاو", "بنما", "بابوا غينيا الجديدة", "باراغواي", "بيرو", "بولندا", "البرتغال", "روسيا", "رواندا", "رومانيا", "السلفادور", "ساموا", "سان مارينو", "ساو تومي وبرينسيب", "المملكة العربية السعودية", "مقدونيا الشمالية", "سيشل", "السنغال", "سانت فنسنت وجزر غرينادين", "سانت كيتس ونيفيس", "سانت لوسيا", "صربيا", "سنغافورة", "سوريا", "سلوفاكيا", "سلوفينيا", "الولايات المتحدة", "الصومال", "السودان", "سورينام", "سيراليون", "طاجيكستان", "تايلاند", "تنزانيا", "توجو", "تونغا", "ترينيداد وتوباغو", "توفالو", "تونس", "تركمانستان", "تركيا", "أوغندا", "أوزبكستان", "أوكرانيا", "أوروغواي", "فيجي", "الفلبين", "فنلندا", "فرنسا", "كرواتيا", "جمهورية أفريقيا الوسطى", "تشاد", "الجبل الأسود", "جمهورية التشيك", "تشيلي", "سويسرا", "السويد", "سريلانكا", "الإكوادور", "غينيا الاستوائية", "إريتريا", "إسواتيني", "إستونيا", "إثيوبيا", "جنوب أفريقيا", "كوريا الجنوبية", "جنوب السودان", "جامايكا", "اليابان", "بلد آخر"
+                ]
+            } 
+        }, 
+        { id: "q2", block: 0, type: "radio", q: { ru: "2. Пол:", en: "2. Gender:", fr: "2. Sexe:", ar: "2. الجنس:" }, opts: { ru: ["Мужской", "Женский"], en: ["Male", "Female"], fr: ["Homme", "Femme"], ar: ["ذكر", "أنثى"] } },
+        { id: "q3", block: 0, type: "number", q: { ru: "3. Возраст (лет):", en: "3. Age (years):", fr: "3. Âge (ans):", ar: "3. العمر (سنوات):" } },
+        { id: "q4", block: 0, type: "text", q: { ru: "4. Курс обучения:", en: "4. Year of study:", fr: "4. Année d'études:", ar: "4. سنة الدراسة:" } },
+        { id: "q5", block: 0, type: "text", q: { ru: "5. Направление подготовки / специальность:", en: "5. Major / Specialty:", fr: "5. Spécialité:", ar: "5. التخصص:" } },
+        { id: "q6", block: 0, type: "radio", q: { ru: "6. Уровень образования:", en: "6. Education level:", fr: "6. Niveau d'éducation:", ar: "6. مستوى التعليم:" }, opts: { 
+            ru: ["Бакалавриат", "Специалитет", "Магистратура", "Аспирантура", "Подготовительное отделение"], 
+            en: ["Bachelor's", "Specialist", "Master's", "Postgraduate", "Preparatory department"],
+            fr: ["Licence", "Spécialité", "Master", "Doctorat", "Département préparatoire"],
+            ar: ["بكالوريوس", "متخصص", "ماجستير", "دراسات عليا", "قسم تحضيري"]
+        }},
+        { id: "q7", block: 0, type: "radio", q: { ru: "7. Как долго Вы находитесь в России?", en: "7. How long have you been in Russia?", fr: "7. Depuis combien de temps êtes-vous en Russie?", ar: "7. كم من الوقت قضيت في روسيا؟" }, opts: { 
+            ru: ["Менее 6 месяцев", "6 месяцев — 1 год", "1–2 года", "2–3 года", "Более 3 лет"], 
+            en: ["Less than 6 months", "6 months - 1 year", "1-2 years", "2-3 years", "More than 3 years"],
+            fr: ["Moins de 6 mois", "6 mois - 1 an", "1-2 ans", "2-3 ans", "Plus de 3 ans"],
+            ar: ["أقل من 6 أشهر", "6 أشهر - سنة", "1-2 سنوات", "2-3 سنوات", "أكثر من 3 سنوات"]
+        }},
+        { id: "q8", block: 0, type: "radio", q: { ru: "8. Оцените Ваш уровень владения русским языком:", en: "8. Russian language proficiency:", fr: "8. Maîtrise de la langue russe:", ar: "8. إجادة اللغة الروسية:" }, opts: { 
+            ru: ["Свободно владею", "Хорошо понимаю и могу общаться", "Понимаю, но говорю с трудом", "Владею на начальном уровне", "Практически не владею"], 
+            en: ["Fluent", "Understand well and can communicate", "Understand, but speak with difficulty", "Beginner level", "Practically do not speak it"],
+            fr: ["Courant", "Je comprends bien et peux communiquer", "Je comprends, mais je parle avec difficulté", "Niveau débutant", "Je ne le parle pratiquement pas"],
+            ar: ["بطلاقة", "أفهم جيدا وأستطيع التواصل", "أفهم ولكن أتحدث بصعوبة", "مستوى مبتدئ", "لا أتحدثها عمليا"]
+        }},
+
+        // БЛОК 2
+        { id: "q9", block: 1, type: "radio", q: { ru: "9. Как бы Вы в целом оценили Ваш опыт обучения и проживания в России?", en: "9. Overall experience in Russia:", fr: "9. Expérience globale en Russie:", ar: "9. التجربة العامة في روسيا:" }, opts: {
+            ru: ["Очень положительно", "Скорее положительно", "Нейтрально", "Скорее отрицательно", "Очень отрицательно"],
+            en: ["Very positive", "Somewhat positive", "Neutral", "Somewhat negative", "Very negative"],
+            fr: ["Très positif", "Plutôt positif", "Neutre", "Plutôt négatif", "Très négatif"],
+            ar: ["إيجابي جدا", "إيجابي نوعا ما", "محايد", "سلبي نوعا ما", "سلبي جدا"]
+        }},
+        { id: "q10", block: 1, type: "checkbox", hasOther: true, q: { ru: "10. С какими трудностями Вы столкнулись при адаптации? (можно несколько)", en: "10. Difficulties in adaptation? (select multiple)", fr: "10. Difficultés d'adaptation ? (plusieurs choix)", ar: "10. صعوبات التكيف؟ (اختر عدة)" }, opts: {
+            ru: ["Языковой барьер", "Различия в культуре и традициях", "Сложности с оформлением документов", "Бытовые трудности", "Трудности в общении", "Ощущение одиночества", "Проявления нетерпимости", "Финансовые затруднения", "Трудностей не было"],
+            en: ["Language barrier", "Cultural differences", "Document processing issues", "Everyday difficulties", "Communication problems", "Loneliness", "Manifestations of intolerance", "Financial difficulties", "No difficulties"],
+            fr: ["Barrière de la langue", "Différences culturelles", "Problèmes de documents", "Difficultés quotidiennes", "Problèmes de communication", "Solitude", "Manifestations d'intolérance", "Difficultés financières", "Aucune difficulté"],
+            ar: ["حاجز اللغة", "الاختلافات الثقافية", "مشاكل الوثائق", "صعوبات يومية", "مشاكل التواصل", "الوحدة", "مظاهر التعصب", "صعوبات مالية", "لم تكن هناك صعوبات"]
+        }},
+        { id: "q11", block: 1, type: "radio", q: { ru: "11. Насколько Вы удовлетворены условиями обучения?", en: "11. Satisfaction with study conditions?", fr: "11. Satisfaction des conditions d'études?", ar: "11. الرضا عن ظروف الدراسة؟" }, opts: {
+            ru: ["Полностью", "Скорее да", "Затрудняюсь ответить", "Скорее нет", "Совсем нет"],
+            en: ["Fully", "Somewhat", "Hard to answer", "Somewhat no", "Not at all"],
+            fr: ["Totalement", "Plutôt oui", "Difficile à dire", "Plutôt non", "Pas du tout"],
+            ar: ["تماما", "إلى حد ما", "يصعب الإجابة", "نوعا ما لا", "على الإطلاق"]
+        }},
+        { id: "q12", block: 1, type: "radio", q: { ru: "12. Отношения с российскими студентами:", en: "12. Relations with Russian students:", fr: "12. Relations avec les étudiants russes:", ar: "12. العلاقات مع الطلاب الروس:" }, opts: {
+            ru: ["Очень хорошие", "Нормальные", "Нейтральные", "Напряжённые", "Не общаемся"],
+            en: ["Very good", "Normal", "Neutral", "Tense", "We don't communicate"],
+            fr: ["Très bonnes", "Normales", "Neutres", "Tendues", "Nous ne communiquons pas"],
+            ar: ["جيدة جدا", "طبيعية", "محايدة", "متوترة", "لا نتواصل"]
+        }},
+        { id: "q13", block: 1, type: "radio", q: { ru: "13. Оказывает ли вуз помощь в адаптации?", en: "13. Does the university help with adaptation?", fr: "13. L'université aide-t-elle à l'adaptation?", ar: "13. هل تساعد الجامعة في التكيف؟" }, opts: {
+            ru: ["Да, системная поддержка", "Да, эпизодически", "Помощь минимальна", "Нет", "Затрудняюсь ответить"],
+            en: ["Yes, systemic support", "Yes, occasionally", "Minimal help", "No", "Hard to answer"],
+            fr: ["Oui, soutien systémique", "Oui, occasionnellement", "Aide minimale", "Non", "Difficile à dire"],
+            ar: ["نعم، دعم منهجي", "نعم، أحيانا", "مساعدة بالحد الأدنى", "لا", "يصعب الإجابة"]
+        }},
+        { id: "q14", block: 1, type: "radio", q: { ru: "14. Испытывали ли Вы проявления нетерпимости?", en: "14. Have you experienced intolerance?", fr: "14. Avez-vous subi de l'intolérance?", ar: "14. هل واجهت مظاهر تعصب؟" }, opts: {
+            ru: ["Да, неоднократно", "Да, единичный случай", "Нет", "Затрудняюсь ответить"],
+            en: ["Yes, repeatedly", "Yes, isolated case", "No", "Hard to answer"],
+            fr: ["Oui, à plusieurs reprises", "Oui, cas isolé", "Non", "Difficile à dire"],
+            ar: ["نعم، مرارا", "نعم، حالة فردية", "لا", "يصعب الإجابة"]
+        }},
+        { id: "q15", block: 1, type: "radio", hasOther: true, q: { ru: "15. Где Вы проживаете?", en: "15. Where do you live?", fr: "15. Où habitez-vous?", ar: "15. أين تعيش؟" }, opts: {
+            ru: ["В общежитии", "Снимаю жильё", "У родственников/знакомых"],
+            en: ["Dormitory", "Renting an apartment", "With relatives/friends"],
+            fr: ["Dortoir", "Appartement en location", "Chez des proches/amis"],
+            ar: ["سكن جامعي", "شقة مستأجرة", "مع أقارب/أصدقاء"]
+        }},
+        { id: "q16", block: 1, type: "checkbox", q: { ru: "16. С кем Вы общаетесь чаще всего?", en: "16. Who do you communicate with most often?", fr: "16. Avec qui communiquez-vous le plus?", ar: "16. مع من تتواصل في أغلب الأحيان؟" }, opts: {
+            ru: ["С соотечественниками в вузе", "С российскими студентами", "С другими иностранцами", "С земляками вне вуза", "Онлайн с родиной", "Общаюсь мало"],
+            en: ["Compatriots in uni", "Russian students", "Other foreigners", "Compatriots outside uni", "Online with home country", "Communicate little"],
+            fr: ["Compatriotes à l'université", "Étudiants russes", "Autres étrangers", "Compatriotes hors université", "En ligne avec le pays d'origine", "Je communique peu"],
+            ar: ["أبناء الوطن في الجامعة", "طلاب روس", "أجانب آخرون", "أبناء الوطن خارج الجامعة", "عبر الإنترنت مع الوطن", "أتواصل قليلا"]
+        }},
+
+        // БЛОК 3
+        { id: "q17", block: 2, type: "radio", q: { ru: "17. Знакомы ли Вы с миграционным законодательством РФ?", en: "17. Are you familiar with RF migration laws?", fr: "17. Connaissez-vous les lois migratoires de la RF?", ar: "17. هل أنت على دراية بقوانين الهجرة الروسية؟" }, opts: {
+            ru: ["Да, хорошо", "В целом да", "Поверхностно", "Нет"],
+            en: ["Yes, well", "Generally yes", "Superficially", "No"],
+            fr: ["Oui, bien", "Généralement oui", "Superficiellement", "Non"],
+            ar: ["نعم، جيدا", "بشكل عام نعم", "سطحيا", "لا"]
+        }},
+        { id: "q18", block: 2, type: "checkbox", q: { ru: "18. Источники информации о правах:", en: "18. Sources of rights info:", fr: "18. Sources d'infos sur les droits:", ar: "18. مصادر المعلومات عن الحقوق:" }, opts: {
+            ru: ["Международный отдел/деканат", "Куратор/преподаватель", "Друзья", "Интернет", "Посольство", "Не получаю"],
+            en: ["International office", "Curator/teacher", "Friends", "Internet", "Embassy", "Do not receive"],
+            fr: ["Bureau international", "Tuteur/prof", "Amis", "Internet", "Ambassade", "Je n'en reçois pas"],
+            ar: ["المكتب الدولي", "المشرف/المعلم", "الأصدقاء", "الإنترنت", "السفارة", "لا أتلقى"]
+        }},
+        { id: "q19", block: 2, type: "radio", q: { ru: "19. Знаете ли Вы об ответственности за экстремизм?", en: "19. Do you know liability for extremism?", fr: "19. Connaissez-vous la responsabilité pour extrémisme?", ar: "19. هل تعرف المسؤولية عن التطرف؟" }, opts: {
+            ru: ["Да, осведомлён", "В общих чертах", "Нет"],
+            en: ["Yes, aware", "In general terms", "No"],
+            fr: ["Oui, conscient", "En termes généraux", "Non"],
+            ar: ["نعم، على علم", "بشكل عام", "لا"]
+        }},
+        { id: "q20", block: 2, type: "radio", q: { ru: "20. Проводились ли в вузе мероприятия по законам РФ?", en: "20. Did uni hold events on RF laws?", fr: "20. L'uni a-t-elle organisé des événements sur les lois?", ar: "20. هل نظمت الجامعة فعاليات حول القوانين الروسية؟" }, opts: {
+            ru: ["Да, регулярно", "Да, единично", "Нет", "Затрудняюсь"],
+            en: ["Yes, regularly", "Yes, occasionally", "No", "Hard to answer"],
+            fr: ["Oui, régulièrement", "Oui, occasionnellement", "Non", "Difficile à dire"],
+            ar: ["نعم، بانتظام", "نعم، أحيانا", "لا", "يصعب الإجابة"]
+        }},
+        { id: "q21", block: 2, type: "radio", q: { ru: "21. Знаете ли Вы, куда обращаться в экстренной ситуации?", en: "21. Do you know where to go in emergency?", fr: "21. Savez-vous où aller en cas d'urgence?", ar: "21. هل تعرف أين تذهب في حالة الطوارئ؟" }, opts: {
+            ru: ["Да, точно знаю", "Примерно представляю", "Нет"],
+            en: ["Yes, exactly", "Roughly", "No"],
+            fr: ["Oui, exactement", "À peu près", "Non"],
+            ar: ["نعم، بالضبط", "تقريبا", "لا"]
+        }},
+
+        // БЛОК 4
+        // Вопросы 22-28 (Шкала Лайкерта)
+        ...[
+            { ru: "22. Конфликты следует решать мирным путём.", en: "22. Conflicts should be resolved peacefully.", fr: "22. Les conflits doivent être résolus pacifiquement.", ar: "22. يجب حل النزاعات سلميا." },
+            { ru: "23. Насилие не может быть оправдано целями.", en: "23. Violence cannot be justified by goals.", fr: "23. La violence ne peut être justifiée par des objectifs.", ar: "23. لا يمكن تبرير العنف بالأهداف." },
+            { ru: "24. Я уважаю традиции народов России.", en: "24. I respect traditions of Russian peoples.", fr: "24. Je respecte les traditions des peuples de Russie.", ar: "24. أحترم تقاليد شعوب روسيا." },
+            { ru: "25. Многообразие культур — это ценность.", en: "25. Cultural diversity is a value.", fr: "25. La diversité culturelle est une valeur.", ar: "25. التنوع الثقافي قيمة." },
+            { ru: "26. Каждый человек заслуживает уважения.", en: "26. Everyone deserves respect.", fr: "26. Chacun mérite le respect.", ar: "26. كل شخص يستحق الاحترام." },
+            { ru: "27. Я могу открыто обсуждать проблемы в вузе.", en: "27. I can openly discuss problems in uni.", fr: "27. Je peux discuter ouvertement des problèmes à l'uni.", ar: "27. أستطيع مناقشة المشاكل بصراحة في الجامعة." },
+            { ru: "28. Пропаганда ненависти — это преступление.", en: "28. Hate speech is a crime.", fr: "28. Le discours de haine est un crime.", ar: "28. الترويج للكراهية جريمة." }
+        ].map((qObj, i) => ({
+            id: `q${22+i}`, block: 3, type: "likert", q: qObj
+        })),
+
+        { id: "q29", block: 3, type: "radio", q: { ru: "29. Встречали ли Вы попытки вовлечения в радикальные группы?", en: "29. Encountered recruitment into radical groups?", fr: "29. Rencontré un recrutement dans des groupes radicaux?", ar: "29. هل واجهت محاولات تجنيد في جماعات متطرفة؟" }, opts: {
+            ru: ["Да, лично", "Слышал от знакомых", "Нет", "Затрудняюсь"],
+            en: ["Yes, personally", "Heard from friends", "No", "Hard to answer"],
+            fr: ["Oui, personnellement", "Entendu par des amis", "Non", "Difficile à dire"],
+            ar: ["نعم، شخصيا", "سمعت من أصدقاء", "لا", "يصعب الإجابة"]
+        }},
+        { id: "q30", block: 3, type: "radio", q: { ru: "30. Как Вы поступите при попытке вовлечения?", en: "30. What will you do if recruited?", fr: "30. Que ferez-vous en cas de recrutement?", ar: "30. ماذا ستفعل إذا حاول أحدهم تجنيدك؟" }, opts: {
+            ru: ["Обращусь в правоохранительные органы", "К руководству вуза", "В посольство", "Расскажу друзьям", "Проигнорирую", "Затрудняюсь"],
+            en: ["Contact police", "Uni administration", "Embassy", "Tell friends", "Ignore", "Hard to answer"],
+            fr: ["Contacter la police", "Administration", "Ambassade", "Dire aux amis", "Ignorer", "Difficile à dire"],
+            ar: ["الاتصال بالشرطة", "إدارة الجامعة", "السفارة", "إخبار الأصدقاء", "تجاهل", "يصعب الإجابة"]
+        }},
+        { id: "q31", block: 3, type: "radio", q: { ru: "31. Чувствуете ли Вы себя в безопасности?", en: "31. Do you feel safe?", fr: "31. Vous sentez-vous en sécurité?", ar: "31. هل تشعر بالأمان؟" }, opts: {
+            ru: ["Да, полностью", "Скорее да", "Скорее нет", "Нет", "Затрудняюсь"],
+            en: ["Yes, completely", "Somewhat", "Somewhat no", "No", "Hard to answer"],
+            fr: ["Oui, complètement", "Plutôt", "Plutôt non", "Non", "Difficile à dire"],
+            ar: ["نعم، تماما", "نوعا ما", "نوعا ما لا", "لا", "يصعب الإجابة"]
+        }},
+        { id: "q32", block: 3, type: "checkbox", hasOther: true, q: { ru: "32. Меры для улучшения адаптации (до 3 вариантов):", en: "32. Measures to improve adaptation (up to 3):", fr: "32. Mesures d'amélioration (jusqu'à 3):", ar: "32. تدابير لتحسين التكيف (حتى 3):" }, opts: {
+            ru: ["Программы поддержки", "Улучшение бытовых условий", "Кураторы-студенты", "Встречи с администрацией", "Мероприятия", "Правовое просвещение", "Психологическая поддержка", "Улучшение преподавания языка"],
+            en: ["Support programs", "Better living conditions", "Student mentors", "Meetings with administration", "Events", "Legal education", "Psychological support", "Better language teaching"],
+            fr: ["Programmes de soutien", "Meilleures conditions de vie", "Mentors étudiants", "Réunions avec l'admin", "Événements", "Éducation juridique", "Soutien psychologique", "Meilleur enseignement de la langue"],
+            ar: ["برامج الدعم", "تحسين ظروف المعيشة", "موجهون طلابيون", "لقاءات مع الإدارة", "فعاليات", "تثقيف قانوني", "دعم نفسي", "تحسين تعليم اللغة"]
+        }},
+        { id: "q33", block: 3, type: "textarea", q: { ru: "33. Ваши пожелания и комментарии:", en: "33. Comments / Suggestions:", fr: "33. Commentaires / Suggestions:", ar: "33. تعليقات / اقتراحات:" } }
+    ];
+
+    // --- STATE ---
+    let currentLang = 'ru';
+    let currentBlock = 0;
+    const totalBlocks = 4;
+    let answers = {};
+
+    function selectLanguage(lang) {
+        currentLang = lang;
+        if (lang === 'ar') {
+            document.body.classList.add('rtl');
+        } else {
+            document.body.classList.remove('rtl');
+        }
+        
+        const dict = i18n[lang];
+        document.getElementById('t-main-title').innerText = dict.title;
+        document.getElementById('t-intro-text').innerText = dict.intro;
+        document.getElementById('btn-start').innerText = dict.btnStart;
+        document.getElementById('btn-prev').innerText = dict.btnPrev;
+        document.getElementById('btn-next').innerText = dict.btnNext;
+        document.getElementById('t-final-title').innerText = dict.finalTitle;
+        document.getElementById('t-final-text').innerText = dict.finalText;
+
+        document.getElementById('step-lang').classList.add('hidden');
+        document.getElementById('step-intro').classList.remove('hidden');
+    }
+
+    function startSurvey() {
+        document.getElementById('step-intro').classList.add('hidden');
+        document.getElementById('step-survey').classList.remove('hidden');
+        renderBlock();
+    }
+
+    function renderBlock() {
+        const dict = i18n[currentLang];
+        document.getElementById('block-title').innerText = dict.blocks[currentBlock];
+        
+        const container = document.getElementById('survey-container');
+        container.innerHTML = ''; // Очистка
+
+        if (currentBlock === 3) { // Инструкция для шкалы Лайкерта в 4 блоке
+            container.innerHTML += `<div class="instructions">${dict.likertScale}</div>`;
+        }
+
+        const blockQuestions = questionsDB.filter(q => q.block === currentBlock);
+
+        blockQuestions.forEach(q => {
+            let html = `<div class="question" id="wrap_${q.id}">
+                <p>${q.q[currentLang]}</p>`;
+            
+            // Отрисовка элементов в зависимости от типа вопроса
+            if (q.type === "text" || q.type === "number") {
+                html += `<input type="${q.type}" name="${q.id}" id="${q.id}">`;
+            } else if (q.type === "select") {
+                html += `<select name="${q.id}" id="${q.id}">`;
+                q.opts[currentLang].forEach((opt, idx) => {
+                    const val = idx === 0 ? "" : opt; // Первый элемент — пустая заглушка "Выберите страну..."
+                    html += `<option value="${val}">${opt}</option>`;
+                });
+                html += `</select>`;
+            } else if (q.type === "textarea") {
+                html += `<textarea name="${q.id}" id="${q.id}" rows="4"></textarea>`;
+            } else if (q.type === "radio" || q.type === "checkbox") {
+                html += `<div class="radio-group">`;
+                q.opts[currentLang].forEach((opt, idx) => {
+                    html += `<label><input type="${q.type}" name="${q.id}" value="${idx+1}"> ${opt}</label>`;
+                });
+                if (q.hasOther) {
+                    html += `<label><input type="${q.type}" name="${q.id}" value="other" id="check_other_${q.id}"> ${dict.otherSpecify} <input type="text" id="text_other_${q.id}" style="width: auto; flex-grow: 1; padding: 5px;"></label>`;
+                }
+                html += `</div>`;
+            } else if (q.type === "likert") {
+                html += `<div class="radio-group" style="flex-direction: row; flex-wrap: wrap;">`;
+                for(let i=1; i<=5; i++) {
+                    html += `<label style="flex: 1; justify-content: center;"><input type="radio" name="${q.id}" value="${i}"> ${i}</label>`;
+                }
+                html += `</div>`;
+            }
+
+            html += `</div>`;
+            container.innerHTML += html;
+        });
+
+        // Восстановление ответов, если пользователь нажал кнопку "Назад"
+        blockQuestions.forEach(q => {
+            if (answers[q.id]) {
+                if (q.type === "text" || q.type === "number" || q.type === "textarea" || q.type === "select") {
+                    const el = document.getElementById(q.id);
+                    if(el) el.value = answers[q.id];
+                } else if (q.type === "radio" || q.type === "likert") {
+                    const el = document.querySelector(`input[name="${q.id}"][value="${answers[q.id].val}"]`);
+                    if(el) el.checked = true;
+                    if(answers[q.id].val === 'other') {
+                        document.getElementById(`text_other_${q.id}`).value = answers[q.id].text;
+                    }
+                } else if (q.type === "checkbox") {
+                    answers[q.id].vals.forEach(v => {
+                        const el = document.querySelector(`input[name="${q.id}"][value="${v}"]`);
+                        if(el) el.checked = true;
+                    });
+                    if(answers[q.id].text) {
+                        document.getElementById(`text_other_${q.id}`).value = answers[q.id].text;
+                    }
+                }
+            }
+        });
+
+        document.getElementById('btn-prev').classList.toggle('hidden', currentBlock === 0);
+        document.getElementById('btn-next').innerText = (currentBlock === totalBlocks - 1) ? dict.btnSubmit : dict.btnNext;
+        window.scrollTo(0, 0);
+    }
+
+    function saveCurrentBlock() {
+        const blockQuestions = questionsDB.filter(q => q.block === currentBlock);
+        let allValid = true;
+
+        blockQuestions.forEach(q => {
+            if (q.type === "text" || q.type === "number" || q.type === "textarea" || q.type === "select") {
+                const val = document.getElementById(q.id).value.trim();
+                // Делаем обязательными все поля, кроме большого комментария в конце (q33)
+                if (q.type !== "textarea" && !val) allValid = false; 
+                answers[q.id] = val;
+            } else if (q.type === "radio" || q.type === "likert") {
+                const checked = document.querySelector(`input[name="${q.id}"]:checked`);
+                if (!checked) allValid = false;
+                else {
+                    let ans = { val: checked.value };
+                    if (checked.value === 'other') ans.text = document.getElementById(`text_other_${q.id}`).value;
+                    answers[q.id] = ans;
+                }
+            } else if (q.type === "checkbox") {
+                const checked = document.querySelectorAll(`input[name="${q.id}"]:checked`);
+                if (checked.length === 0) allValid = false;
+                else {
+                    let ans = { vals: Array.from(checked).map(c => c.value) };
+                    const otherCheck = document.getElementById(`check_other_${q.id}`);
+                    if (otherCheck && otherCheck.checked) ans.text = document.getElementById(`text_other_${q.id}`).value;
+                    answers[q.id] = ans;
+                }
+            }
+        });
+
+        if (!allValid) {
+            alert(i18n[currentLang].errorRequired);
+            return false;
+        }
+        return true;
+    }
+
+    function prevBlock() {
+        saveCurrentBlock();
+        if (currentBlock > 0) {
+            currentBlock--;
+            renderBlock();
+        }
+    }
+
+    function nextBlock() {
+        if (!saveCurrentBlock()) return;
+
+        if (currentBlock < totalBlocks - 1) {
+            currentBlock++;
+            renderBlock();
+        } else {
+            submitForm();
+        }
+    }
+
+    function submitForm() {
+        document.getElementById('btn-next').disabled = true;
+        document.getElementById('btn-prev').disabled = true;
+        document.getElementById('loading').innerText = i18n[currentLang].loading;
+        document.getElementById('loading').classList.remove('hidden');
+
+        // Подготовка данных для отправки
+        const formData = new URLSearchParams();
+        formData.append('lang', currentLang);
+        
+        for (let key in answers) {
+            let val = answers[key];
+            if (typeof val === 'object') {
+                if (val.vals) val = val.vals.join(',') + (val.text ? ` (${val.text})` : '');
+                else val = val.val === 'other' ? `Other (${val.text})` : val.val;
+            }
+            formData.append(key, val);
+        }
+
+        fetch(scriptURL, { method: 'POST', body: formData })
+            .then(response => {
+                document.getElementById('step-survey').classList.add('hidden');
+                document.getElementById('step-final').classList.remove('hidden');
+            })
+            .catch(error => {
+                alert('Connection error. Try again.');
+                document.getElementById('btn-next').disabled = false;
+                document.getElementById('btn-prev').disabled = false;
+                document.getElementById('loading').classList.add('hidden');
+            });
+    }
+</script>
+</body>
+</html>
