@@ -124,6 +124,38 @@
             .container { padding: 20px; }
             .lang-btn { font-size: 16px; }
         }
+        /* Стили для идеальной симметрии шкалы Лайкерта */
+        .likert-group {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr); /* 5 строго одинаковых колонок */
+            gap: 8px;
+        }
+        .likert-option {
+            display: flex;
+            flex-direction: column; /* Ставим кружок над цифрой */
+            align-items: center;
+            justify-content: center;
+            background: #fcfcfd;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px 5px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .likert-option:hover {
+            background: #f0f4fc;
+            border-color: var(--primary-color);
+        }
+        .likert-option input[type="radio"] {
+            margin: 0 0 8px 0 !important; /* Отступ между кружком и цифрой */
+            width: 20px;
+            height: 20px;
+            accent-color: var(--primary-color);
+        }
+        .likert-option span {
+            font-weight: 600;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
@@ -500,13 +532,15 @@
                     html += `<label><input type="${q.type}" name="${q.id}" value="${idx+1}"> ${opt}</label>`;
                 });
                 if (q.hasOther) {
-                    html += `<label><input type="${q.type}" name="${q.id}" value="other" id="check_other_${q.id}"> ${dict.otherSpecify} <input type="text" id="text_other_${q.id}" style="width: auto; flex-grow: 1; padding: 5px;"></label>`;
+                    // ИСПРАВЛЕНИЕ: Добавили flex-wrap, чтобы поле ввода аккуратно падало на новую строку на мобильных
+                    html += `<label style="flex-wrap: wrap;"><input type="${q.type}" name="${q.id}" value="other" id="check_other_${q.id}"> <span style="white-space: nowrap; margin-right: 10px;">${dict.otherSpecify}</span> <input type="text" id="text_other_${q.id}" style="flex: 1 1 100%; width: 100%; margin-top: 8px; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; box-sizing: border-box;"></label>`;
                 }
                 html += `</div>`;
             } else if (q.type === "likert") {
-                html += `<div class="radio-group" style="flex-direction: row; flex-wrap: wrap;">`;
+                // ИСПРАВЛЕНИЕ: Используем новую сетку для симметрии
+                html += `<div class="likert-group">`;
                 for(let i=1; i<=5; i++) {
-                    html += `<label style="flex: 1; justify-content: center;"><input type="radio" name="${q.id}" value="${i}"> ${i}</label>`;
+                    html += `<label class="likert-option"><input type="radio" name="${q.id}" value="${i}"><span>${i}</span></label>`;
                 }
                 html += `</div>`;
             }
