@@ -5,54 +5,125 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Мониторинг социокультурной адаптации</title>
     <style>
+        /* Подключаем современный шрифт Montserrat */
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
+
         :root {
-            --primary-color: #0056b3;
-            --primary-hover: #004494;
-            --bg-color: #f4f7f6;
+            /* Фирменные цвета со скриншота */
+            --primary-color: #5145fe; /* Сине-фиолетовый (индиго) */
+            --primary-hover: #3d34bf; /* Темный индиго для наведения */
+            --secondary-color: #55b7b1; /* Бирюзовый акцентный цвет */
+            --bg-color: #f8f9fc; /* Очень светлый серо-синий фон страницы */
             --card-bg: #ffffff;
             --text-color: #333333;
-            --border-color: #cccccc;
+            --border-color: #d1d5db;
         }
 
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-color); line-height: 1.6; padding: 20px; transition: all 0.3s; }
-        .container { max-width: 800px; margin: 0 auto; background: var(--card-bg); padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        body { 
+            font-family: 'Montserrat', sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-color); 
+            line-height: 1.6; 
+            padding: 15px; 
+            transition: all 0.3s; 
+        }
+
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: var(--card-bg); 
+            padding: 30px; 
+            border-radius: 12px; /* Чуть более скругленные углы */
+            box-shadow: 0 8px 25px rgba(81, 69, 254, 0.1); /* Тень в тон фирменного цвета */
+        }
         
-        /* RTL Support for Arabic */
+        /* Поддержка письма справа налево для арабского */
         body.rtl { direction: rtl; text-align: right; }
         body.rtl .radio-group label { text-align: right; }
         
-        h1, h2, h3 { text-align: center; color: var(--primary-color); }
-        .instructions { background: #e9ecef; padding: 15px; border-radius: 5px; margin-bottom: 20px; font-size: 0.95em; border-left: 4px solid var(--primary-color); }
-        body.rtl .instructions { border-left: none; border-right: 4px solid var(--primary-color); }
+        /* ИСПРАВЛЕНИЕ: Автоматический перенос длинных заголовков для мобильных */
+        h1, h2, h3 { 
+            text-align: center; 
+            color: var(--primary-color); 
+            overflow-wrap: break-word; /* Жестко переносить длинные слова */
+            word-wrap: break-word; 
+            hyphens: auto; 
+        }
+
+        .instructions { 
+            background: #f0f4f8; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-bottom: 20px; 
+            font-size: 0.95em; 
+            border-left: 4px solid var(--secondary-color); /* Бирюзовый акцент */
+        }
+        body.rtl .instructions { border-left: none; border-right: 4px solid var(--secondary-color); }
 
         .form-group { margin-bottom: 20px; }
-        label { display: block; font-weight: bold; margin-bottom: 8px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; }
         
-        /* Обновлено: добавлен селектор для select */
-        input[type="text"], input[type="number"], textarea, select { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; box-sizing: border-box; font-family: inherit; font-size: 16px; background-color: #fff;}
+        input[type="text"], input[type="number"], textarea, select { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid var(--border-color); 
+            border-radius: 6px; 
+            box-sizing: border-box; 
+            font-family: inherit; 
+            font-size: 16px; 
+            background-color: #fff;
+            transition: border-color 0.2s;
+        }
         
-        .question { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
-        .question p { font-weight: bold; margin-bottom: 10px; }
+        input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
+            border-color: var(--primary-color); /* Фирменный цвет рамки при клике */
+            outline: none;
+        }
+        
+        .question { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #f0f0f0; }
+        .question p { font-weight: 600; margin-bottom: 10px; color: #1a1a1a; }
         
         .radio-group { display: flex; flex-direction: column; gap: 8px; }
-        .radio-group label { font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 10px; background: #f8f9fa; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); transition: 0.2s; margin-bottom: 0; }
-        .radio-group label:hover { background: #e2e6ea; }
-        .radio-group input[type="radio"], .radio-group input[type="checkbox"] { margin: 0; width: 18px; height: 18px; }
+        .radio-group label { 
+            font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 10px; 
+            background: #fcfcfd; padding: 12px; border-radius: 8px; 
+            border: 1px solid var(--border-color); transition: 0.2s; margin-bottom: 0; 
+        }
+        .radio-group label:hover { background: #f0f4fc; border-color: #b0b8d6; }
+        .radio-group input[type="radio"], .radio-group input[type="checkbox"] { 
+            margin: 0; width: 18px; height: 18px; accent-color: var(--primary-color); 
+        }
 
         .lang-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .lang-btn { background: #fff; border: 2px solid var(--primary-color); color: var(--primary-color); font-size: 18px; font-weight: bold; }
+        .lang-btn { 
+            background: #fff; border: 2px solid var(--primary-color); color: var(--primary-color); 
+            font-size: 18px; font-weight: 600; border-radius: 8px;
+        }
         .lang-btn:hover { background: var(--primary-color); color: #fff; }
 
-        button { background-color: var(--primary-color); color: white; border: none; padding: 12px 20px; cursor: pointer; border-radius: 4px; font-size: 16px; width: 100%; margin-top: 20px; transition: 0.3s; font-weight: bold; }
+        button { 
+            background-color: var(--primary-color); color: white; border: none; padding: 14px 20px; 
+            cursor: pointer; border-radius: 8px; font-size: 16px; width: 100%; margin-top: 20px; 
+            transition: 0.3s; font-weight: 600; 
+        }
         button:hover { background-color: var(--primary-hover); }
-        button:disabled { background-color: #999; cursor: not-allowed; }
+        button:disabled { background-color: #a0a0a0; cursor: not-allowed; }
         
         .hidden { display: none !important; }
-        #loading { text-align: center; font-weight: bold; color: var(--primary-color); margin-top: 20px; }
+        #loading { text-align: center; font-weight: 600; color: var(--primary-color); margin-top: 20px; }
         
         .nav-buttons { display: flex; gap: 10px; }
-        .btn-secondary { background-color: #6c757d; }
-        .btn-secondary:hover { background-color: #5a6268; }
+        .btn-secondary { background-color: #7a8290; }
+        .btn-secondary:hover { background-color: #616875; }
+
+        /* ИСПРАВЛЕНИЕ: Адаптивность элементов под экраны телефонов */
+        @media (max-width: 600px) {
+            h1 { font-size: 1.4rem; }
+            h2 { font-size: 1.2rem; }
+            h3 { font-size: 1.1rem; }
+            .container { padding: 20px; }
+            .lang-btn { font-size: 16px; }
+        }
     </style>
 </head>
 <body>
